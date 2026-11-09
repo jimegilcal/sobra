@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <!-- =====================================================================
+       SOBRA · DEMO EN DIRECTO (sobra/app/index.html)
+       Mini web-app para la presentación final en clase. Se abre desde un QR.
+       Reproduce los 6 pasos de "Cómo funciona" de la landing (../index.html)
+       como experiencia funcional. Cada móvil funciona por su cuenta: el stock
+       solo baja en la pantalla de quien reserva.
+       Al reservar (paso 3) se envían nombre + elección a un Google Form interno.
+       Sin analítica ni cookies. Un único archivo: HTML + CSS + JS inline.
+       ===================================================================== -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FAF4EA">
+  <meta name="robots" content="noindex">
+  <title>Sobra · Demo</title>
+  <meta name="description" content="Demo de Sobra: lo que sobra en la cafetería de tu uni, a mitad de precio.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ----------------------------- Marca (mismos tokens que la landing) ----------------------------- */
+    :root {
+      --orange: #FF5F1F;
+      --orange-hover: #FF7438;
+      --orange-soft: #FFE6D9;
+      --yellow: #FFC53D;
+      --ink: #1A1410;
+      --body: #5B4B3F;
+      --muted: #75685E;
+      --paper: #FAF4EA;
+      --cream: #F3EADA;
+      --cream-2: #F6EEDF;
+      --white: #FFFDF9;
+      --line: rgba(26, 20, 16, 0.12);
+      --display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif;
+      --sans: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --t: 380ms;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.5;
+      color: var(--body);
+      background: var(--paper);
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior: none;
+    }
+    h1, h2, p { margin: 0; }
+    button, input, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; touch-action: manipulation; }
+    :focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; border-radius: 8px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* ----------------------------- Estructura ----------------------------- */
+    .app {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--paper);
+      overflow: hidden;
+    }
+    @media (min-width: 560px) {
+      body { background: var(--cream); }
+      .app { box-shadow: 0 0 0 1px var(--line), 0 30px 80px -40px rgba(26, 20, 16, 0.35); }
+    }
+
+    .top {
+      flex: none;
+      padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 10px;
+    }
+    .top-row { display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-family: var(--display); font-weight: 800; font-size: 1.6rem; letter-spacing: -0.03em; color: var(--ink); line-height: 1; }
+    .logo i { font-style: normal; color: var(--orange); }
+    .step-count { font-weight: 700; font-size: 0.9rem; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+    .step-count b { color: var(--ink); }
+    .progress { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 12px; }
+    .progress i { height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; position: relative; }
+    .progress i::after { content: ""; position: absolute; inset: 0; background: var(--orange); transform: scaleX(0); transform-origin: left; transition: transform 500ms var(--ease); }
+    .progress i.on::after { transform: scaleX(1); }
+
+    .stage { position: relative; flex: 1; min-height: 0; }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 8px 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(28px);
+      transition: opacity var(--t) var(--ease), transform var(--t) var(--ease), visibility 0s linear var(--t);
+    }
+    .screen.is-active { opacity: 1; visibility: visible; transform: none; transition: opacity var(--t) var(--ease), transform var(--t) var(--ease), visibility 0s; }
+    .screen.is-left { transform: translateX(-28px); }
+    .screen > * { flex-shrink: 0; } /* nada se aplasta: si no cabe, la pantalla hace scroll */
+    @media (prefers-reduced-motion: reduce) {
+      .screen, .screen.is-left { transform: none; }
+    }
+
+    /* Cabecera de cada paso: mismo patrón que las tarjetas de "Cómo funciona" */
+    .step-kicker { display: flex; align-items: center; gap: 10px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange); }
+    .step-kicker span { display: inline-grid; place-items: center; min-width: 2.1em; height: 2.1em; padding: 0 0.4em; border-radius: 999px; background: var(--ink); color: var(--yellow); letter-spacing: 0.02em; }
+
+    .title { font-family: var(--display); font-weight: 800; color: var(--ink); font-size: clamp(1.9rem, 8.4vw, 2.5rem); line-height: 1.02; letter-spacing: -0.035em; }
+    .title em { font-style: normal; color: var(--orange); }
+    .title:focus { outline: none; }
+    .lead { font-size: 1.05rem; line-height: 1.5; }
+    .micro { font-size: 0.82rem; line-height: 1.45; color: var(--muted); }
+
+    .push { margin-top: auto; display: grid; gap: 12px; }
+
+    /* ----------------------------- Botones ----------------------------- */
+    .btn {
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 60px;
+      padding: 0 24px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--orange);
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 1.12rem;
+      letter-spacing: -0.01em;
+      transition: transform 160ms var(--ease), background 200ms, opacity 200ms, box-shadow 200ms;
+      box-shadow: 0 14px 28px -16px rgba(255, 95, 31, 0.9);
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.38; box-shadow: none; cursor: default; }
+    .btn:disabled:active { transform: none; }
+    .btn-xl { min-height: 72px; font-size: 1.25rem; }
+    .btn-dark { background: var(--ink); color: var(--paper); box-shadow: 0 14px 28px -16px rgba(26, 20, 16, 0.8); }
+    .btn-ghost { background: transparent; box-shadow: none; min-height: 48px; font-weight: 600; font-size: 1rem; color: var(--body); }
+    .btn .ripple { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.55); transform: scale(0); animation: ripple 650ms var(--ease) forwards; pointer-events: none; }
+    @keyframes ripple { to { transform: scale(4); opacity: 0; } }
+
+    /* ----------------------------- 01 · Aviso + entrada ----------------------------- */
+    .lock {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      padding: 18px 16px 16px;
+      background: radial-gradient(120% 90% at 85% 0%, rgba(255, 95, 31, 0.55), transparent 60%), radial-gradient(90% 70% at 0% 100%, rgba(255, 197, 61, 0.35), transparent 60%), var(--ink);
+      color: var(--paper);
+      text-align: center;
+    }
+    .lock-date { font-size: 0.85rem; font-weight: 600; opacity: 0.8; }
+    .lock-time { font-family: var(--display); font-weight: 800; font-size: 4.6rem; line-height: 0.95; letter-spacing: -0.04em; color: var(--paper); font-variant-numeric: tabular-nums; }
+    .notif {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: start;
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255, 253, 249, 0.94);
+      color: var(--ink);
+      text-align: left;
+      animation: notif-in 700ms var(--ease) 350ms both;
+    }
+    @keyframes notif-in { from { opacity: 0; transform: translateY(-18px) scale(0.96); } }
+    @media (prefers-reduced-motion: reduce) { @keyframes notif-in { from { opacity: 0; } } }
+    .notif-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--orange); display: grid; place-items: center; }
+    .notif-icon svg { width: 24px; height: 24px; }
+    .notif-top { display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; }
+    .notif-title { font-weight: 700; font-size: 0.98rem; line-height: 1.25; }
+    .notif-body { font-size: 0.86rem; color: var(--body); line-height: 1.35; }
+
+    .field { display: grid; gap: 8px; }
+    .field label { font-weight: 700; color: var(--ink); font-size: 1.05rem; }
+    .input {
+      width: 100%;
+      min-height: 60px;
+      padding: 0 20px;
+      border: 2px solid var(--line);
+      border-radius: 18px;
+      background: var(--white);
+      font-size: 1.2rem; /* ≥16px: iOS no hace zoom al escribir */
+      font-weight: 600;
+      color: var(--ink);
+      transition: border-color 200ms, box-shadow 200ms;
+    }
+    .input::placeholder { color: #A89A8D; font-weight: 500; }
+    .input:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 4px rgba(255, 95, 31, 0.18); }
+
+    /* ----------------------------- 02 · Lo que ha sobrado ----------------------------- */
+    .place { font-size: 0.9rem; font-weight: 600; color: var(--muted); }
+    .options { display: grid; gap: 12px; }
+    .option {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      padding: 14px 16px 14px 14px;
+      border: 2px solid var(--line);
+      border-radius: 22px;
+      background: var(--white);
+      text-align: left;
+      transition: border-color 220ms, background 220ms, transform 160ms var(--ease), box-shadow 220ms;
+    }
+    .option:active { transform: scale(0.98); }
+    .option[aria-checked="true"] { border-color: var(--orange); background: var(--orange-soft); box-shadow: 0 12px 26px -18px rgba(255, 95, 31, 0.9); }
+    .option-emoji { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 18px; background: var(--cream); font-size: 2.3rem; line-height: 1; transition: transform 300ms var(--ease), background 220ms; }
+    .option[aria-checked="true"] .option-emoji { background: var(--white); transform: rotate(-6deg) scale(1.06); }
+    .option-name { display: block; font-weight: 700; color: var(--ink); font-size: 1.12rem; line-height: 1.2; }
+    .option-left { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 0.92rem; font-weight: 600; color: var(--muted); }
+    .tag-50 { display: inline-block; padding: 0.12em 0.5em; border-radius: 0.45em; background: var(--orange); color: var(--ink); font-weight: 700; font-size: 0.78rem; line-height: 1.3; }
+    .option-tick { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; transition: background 220ms, border-color 220ms; }
+    .option-tick svg { width: 16px; height: 16px; opacity: 0; transform: scale(0.4); transition: opacity 200ms, transform 300ms var(--ease); }
+    .option[aria-checked="true"] .option-tick { background: var(--orange); border-color: var(--orange); }
+    .option[aria-checked="true"] .option-tick svg { opacity: 1; transform: none; }
+
+    /* ----------------------------- 03 · Reserva ----------------------------- */
+    .summary { overflow: hidden; border-radius: 26px; background: var(--white); box-shadow: 0 0 0 1px var(--line); }
+    .summary-hero { position: relative; display: grid; place-items: center; height: 168px; background: radial-gradient(70% 90% at 50% 100%, rgba(255, 197, 61, 0.55), transparent 70%), var(--cream); font-size: 5.6rem; line-height: 1; }
+    .summary-hero .tag-50 { position: absolute; top: 14px; left: 14px; font-size: 0.9rem; }
+    .summary-hero span[data-sum-emoji] { animation: float 3.2s ease-in-out infinite; }
+    @keyframes float { 50% { transform: translateY(-6px) rotate(-4deg); } }
+    @media (prefers-reduced-motion: reduce) { .summary-hero span[data-sum-emoji] { animation: none; } }
+    .summary-body { display: grid; gap: 10px; padding: 16px 18px 18px; }
+    .summary-name { font-family: var(--display); font-weight: 800; font-size: 1.7rem; letter-spacing: -0.03em; color: var(--ink); line-height: 1.05; }
+    .summary-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 600; color: var(--muted); font-size: 0.95rem; }
+    .stock { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 0.25em 0.7em; border-radius: 999px; background: var(--cream); color: var(--ink); font-weight: 700; }
+    .stock b { display: inline-block; min-width: 1.2ch; text-align: center; font-variant-numeric: tabular-nums; }
+    .stock.bump b { animation: bump 600ms var(--ease); }
+    @keyframes bump { 0% { transform: translateY(0); } 35% { transform: translateY(-10px); opacity: 0; } 36% { transform: translateY(10px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+    .stock .minus { position: absolute; right: -4px; top: -6px; padding: 0.05em 0.45em; border-radius: 999px; background: var(--orange); color: var(--ink); font-size: 0.8em; font-weight: 800; opacity: 0; pointer-events: none; }
+    .stock.bump .minus { animation: minus-up 1100ms var(--ease) forwards; }
+    @keyframes minus-up { 0% { opacity: 0; transform: translateY(4px); } 20% { opacity: 1; transform: translateY(-6px); } 70% { opacity: 1; transform: translateY(-14px); } 100% { opacity: 0; transform: translateY(-20px); } }
+    .pickup { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 16px; background: var(--cream-2); font-weight: 600; color: var(--ink); font-size: 0.95rem; }
+    .pickup svg { flex: none; width: 22px; height: 22px; }
+    .btn.is-done { background: var(--ink); color: var(--yellow); }
+
+    /* ----------------------------- 04 · Confirmación ----------------------------- */
+    .confirm { align-items: center; text-align: center; }
+    .confirm .step-kicker { align-self: flex-start; }
+    .big-check { position: relative; width: 116px; height: 116px; margin-top: 8px; border-radius: 50%; background: var(--orange); display: grid; place-items: center; flex: none; }
+    .big-check::before { content: ""; position: absolute; inset: -14px; border-radius: 50%; border: 3px solid var(--orange); opacity: 0; }
+    .big-check svg { width: 60px; height: 60px; }
+    .big-check path { stroke-dasharray: 26; stroke-dashoffset: 26; }
+    .screen.is-active .big-check { animation: pop 600ms var(--ease) 120ms both; }
+    .screen.is-active .big-check::before { animation: ring 1100ms var(--ease) 380ms both; }
+    .screen.is-active .big-check path { animation: draw 500ms var(--ease) 420ms forwards; }
+    @keyframes pop { 0% { transform: scale(0.3); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: none; } }
+    @keyframes ring { 0% { transform: scale(0.8); opacity: 0.9; } 100% { transform: scale(1.35); opacity: 0; } }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    .confirm .title { font-size: clamp(1.8rem, 8vw, 2.3rem); }
+    .code-box { display: grid; gap: 4px; justify-items: center; width: 100%; padding: 16px; border-radius: 22px; border: 2px dashed rgba(26, 20, 16, 0.28); background: var(--white); }
+    .code-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .code { font-family: var(--display); font-weight: 800; font-size: 3.4rem; letter-spacing: 0.02em; color: var(--ink); line-height: 1; font-variant-numeric: tabular-nums; }
+    .row-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border-radius: 18px; background: var(--cream-2); text-align: left; }
+    .row-item .e { font-size: 1.8rem; line-height: 1; }
+    .row-item b { display: block; color: var(--ink); }
+    .row-item small { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+
+    /* ----------------------------- 05 · Bono / ticket ----------------------------- */
+    .ticket { position: relative; filter: drop-shadow(0 26px 30px rgba(26, 20, 16, 0.28)); }
+    .screen.is-active .ticket { animation: ticket-in 650ms var(--ease) 80ms both; }
+    @keyframes ticket-in { from { opacity: 0; transform: translateY(26px) rotate(-2deg); } }
+    @media (prefers-reduced-motion: reduce) { @keyframes ticket-in { from { opacity: 0; } } }
+    .ticket-main, .ticket-stub {
+      position: relative;
+      overflow: hidden;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 20px 20px 18px;
+    }
+    .ticket-main {
+      border-radius: 26px 26px 0 0;
+      -webkit-mask: radial-gradient(circle 14px at 0 100%, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 14px at 100% 100%, transparent 98%, #000) right / 51% 100% no-repeat;
+              mask: radial-gradient(circle 14px at 0 100%, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 14px at 100% 100%, transparent 98%, #000) right / 51% 100% no-repeat;
+    }
+    .ticket-main::after { content: ""; position: absolute; right: -60px; top: -70px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 95, 31, 0.6), transparent 70%); pointer-events: none; }
+    .ticket-stub {
+      border-radius: 0 0 26px 26px;
+      padding-top: 22px;
+      background-image: linear-gradient(90deg, rgba(250, 244, 234, 0.35) 50%, transparent 50%);
+      background-size: 14px 2px;
+      background-repeat: repeat-x;
+      background-position: 0 0;
+      -webkit-mask: radial-gradient(circle 14px at 0 0, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 14px at 100% 0, transparent 98%, #000) right / 51% 100% no-repeat;
+              mask: radial-gradient(circle 14px at 0 0, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 14px at 100% 0, transparent 98%, #000) right / 51% 100% no-repeat;
+    }
+    .ticket-top { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.9rem; }
+    .ticket-top .logo { color: var(--paper); font-size: 1.35rem; }
+    .chip { padding: 0.25em 0.75em; border-radius: 999px; background: rgba(255, 197, 61, 0.18); color: var(--yellow); font-size: 0.82rem; font-weight: 700; }
+    .ticket-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
+    .ticket-name { position: relative; z-index: 1; margin-top: 18px; font-family: var(--display); font-weight: 800; font-size: 2.2rem; line-height: 1; letter-spacing: -0.03em; overflow-wrap: anywhere; }
+    .ticket-item { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+    .ticket-item .e { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; background: rgba(250, 244, 234, 0.1); font-size: 1.9rem; }
+    .ticket-item b { display: block; font-size: 1.1rem; }
+    .ticket-item small { opacity: 0.7; font-size: 0.88rem; }
+    .ticket-stub-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+    .ticket-code { font-family: var(--display); font-weight: 800; font-size: 2.6rem; line-height: 1; color: var(--yellow); letter-spacing: 0.02em; }
+    .barcode { width: 112px; height: 44px; border-radius: 4px; background: repeating-linear-gradient(90deg, var(--paper) 0 2px, transparent 2px 4px, var(--paper) 4px 5px, transparent 5px 8px, var(--paper) 8px 11px, transparent 11px 13px); opacity: 0.9; }
+    .ticket-foot { margin-top: 12px; font-size: 0.85rem; opacity: 0.7; }
+
+    /* ----------------------------- 06 · Valoración ----------------------------- */
+    .stars { display: flex; justify-content: space-between; gap: 6px; }
+    .star { display: grid; place-items: center; width: 100%; aspect-ratio: 1; max-width: 64px; padding: 0; border: 0; border-radius: 16px; background: transparent; }
+    .star svg { width: 88%; height: 88%; transition: transform 260ms var(--ease); }
+    .star path { fill: var(--cream); stroke: rgba(26, 20, 16, 0.25); stroke-width: 1.2; transition: fill 200ms, stroke 200ms; }
+    .star.on path { fill: var(--yellow); stroke: #E9A400; }
+    .star.on svg { transform: scale(1.08); }
+    .star.pulse svg { animation: star-pop 420ms var(--ease); }
+    @keyframes star-pop { 40% { transform: scale(1.3) rotate(-8deg); } }
+    .rate-label { min-height: 1.5em; text-align: center; font-weight: 700; color: var(--ink); font-size: 1.05rem; }
+    .textarea { width: 100%; min-height: 110px; padding: 14px 16px; border: 2px solid var(--line); border-radius: 18px; background: var(--white); font-size: 1.05rem; resize: none; color: var(--ink); }
+    .textarea:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 4px rgba(255, 95, 31, 0.18); }
+
+    .thanks { flex: 1; display: grid; align-content: center; justify-items: center; gap: 14px; text-align: center; padding-bottom: 20px; }
+    .thanks .title { font-size: clamp(2.1rem, 10vw, 2.8rem); }
+    .thanks-stars { display: flex; gap: 6px; color: var(--orange); font-size: 3rem; line-height: 1; }
+    .thanks-stars span { display: inline-block; animation: heart 700ms var(--ease) both; }
+    @keyframes heart { 0% { transform: scale(0.2) rotate(-30deg); opacity: 0; } 60% { transform: scale(1.25); opacity: 1; } 100% { transform: none; } }
+
+    /* ----------------------------- Móviles bajos (iPhone SE, etc.) ----------------------------- */
+    @media (max-height: 720px) {
+      .screen { gap: 14px; }
+      .top { padding-top: calc(env(safe-area-inset-top, 0px) + 10px); }
+      .lock { padding: 12px 12px 12px; border-radius: 24px; }
+      .lock-time { font-size: 3.4rem; }
+      .notif { margin-top: 10px; }
+      .title { font-size: clamp(1.7rem, 7.6vw, 2.2rem); }
+      .summary-hero { height: 124px; font-size: 4.4rem; }
+      .big-check { width: 84px; height: 84px; margin-top: 0; }
+      .big-check svg { width: 44px; height: 44px; }
+      .code-box { padding: 12px; }
+      .code { font-size: 2.8rem; }
+      .btn { min-height: 56px; }
+      .btn-xl { min-height: 64px; }
+    }
+
+    #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="top-row">
+        <span class="logo">Sobra<i>.</i></span>
+        <span class="step-count" aria-live="polite"><span class="sr-only">Paso </span><b data-step-now>01</b> / 06</span>
+      </div>
+      <div class="progress" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+    </header>
+
+    <main class="stage">
+
+      <!-- ============ 01 · A las 20:59, te avisamos ============ -->
+      <section class="screen is-active" data-screen="1" aria-labelledby="t1">
+        <p class="step-kicker"><span>01</span>A las 20:59, te avisamos</p>
+        <div class="lock" aria-hidden="true">
+          <p class="lock-date">Hoy</p>
+          <p class="lock-time">20:59</p>
+          <div class="notif">
+            <span class="notif-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="#1A1410" stroke-width="2.2"/><path d="M12 12V7.5M12 12H8.5" stroke="#1A1410" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+            <div>
+              <p class="notif-top"><span>SOBRA</span><span>ahora</span></p>
+              <p class="notif-title">Ya está aquí lo de hoy</p>
+              <p class="notif-body">Ha sobrado regaliz, ositos y azúcar. Todo a mitad de precio.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h1 class="title" id="t1" tabindex="-1">Te hemos <em>avisado.</em></h1>
+          <p class="lead" style="margin-top: 8px;">Esto es lo que ha quedado hoy en la cafetería. Dinos tu nombre y entra.</p>
+        </div>
+        <form class="push" data-name-form novalidate>
+          <div class="field">
+            <label for="name">¿Cómo te llamas?</label>
+            <input class="input" id="name" name="name" type="text" maxlength="30" autocomplete="given-name" autocapitalize="words" enterkeyhint="go" placeholder="Tu nombre" required>
+          </div>
+          <button class="btn" type="submit" data-enter disabled>Entrar</button>
+          <p class="micro">Demo de Sobra, proyecto académico de ICADE. Tu nombre solo se usa para esta demo en clase.</p>
+        </form>
+      </section>
+
+      <!-- ============ 02 · Ves lo que ha sobrado ============ -->
+      <section class="screen" data-screen="2" aria-labelledby="t2" inert>
+        <p class="step-kicker"><span>02</span>Ves lo que ha sobrado</p>
+        <div>
+          <h1 class="title" id="t2" tabindex="-1">Hola <em data-name></em>, esto es lo que ha sobrado hoy</h1>
+          <p class="place" style="margin-top: 8px;">Cafetería del campus · todo a mitad de precio</p>
+        </div>
+        <div class="options" role="radiogroup" aria-labelledby="t2" data-options></div>
+        <div class="push">
+          <button class="btn" type="button" data-to-reserve disabled>Elige una para seguir</button>
+        </div>
+      </section>
+
+      <!-- ============ 03 · Reservas en un toque ============ -->
+      <section class="screen" data-screen="3" aria-labelledby="t3" inert>
+        <p class="step-kicker"><span>03</span>Reservas en un toque</p>
+        <h1 class="title" id="t3" tabindex="-1">Tu elección de hoy</h1>
+        <div class="summary">
+          <div class="summary-hero"><span class="tag-50">-50%</span><span data-sum-emoji aria-hidden="true"></span></div>
+          <div class="summary-body">
+            <p class="summary-name" data-sum-name></p>
+            <p class="summary-meta"><span>1 ración</span><span class="stock" data-stock><span class="minus">−1</span>Quedan <b data-sum-left></b></span></p>
+            <div class="pickup">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11A6.5 6.5 0 0 1 18.5 10c0 5.4-6.5 11-6.5 11Z" stroke="#1A1410" stroke-width="1.8"/><circle cx="12" cy="10" r="2.3" fill="#FF5F1F"/></svg>
+              <span>Recogida en el mostrador de la cafetería</span>
+            </div>
+          </div>
+        </div>
+        <div class="push">
+          <button class="btn btn-xl" type="button" data-reserve>Reservar en un toque</button>
+          <button class="btn btn-ghost" type="button" data-back>Cambiar elección</button>
+        </div>
+      </section>
+
+      <!-- ============ 04 · Lo recoges con tu código ============ -->
+      <section class="screen confirm" data-screen="4" aria-labelledby="t4" inert>
+        <p class="step-kicker"><span>04</span>Lo recoges con tu código</p>
+        <span class="big-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#1A1410" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <h1 class="title" id="t4" tabindex="-1">¡Reserva confirmada, <em data-name></em>!</h1>
+        <div class="code-box">
+          <span class="code-label">Tu código de recogida</span>
+          <span class="code" data-code></span>
+        </div>
+        <p class="lead">Enséñalo en el punto de recogida y te lo llevas.</p>
+        <div class="row-item"><span class="e" data-item-emoji aria-hidden="true"></span><span><b data-item-name></b><small>1 ración · mostrador de la cafetería</small></span></div>
+        <div class="push" style="width: 100%;">
+          <button class="btn btn-dark" type="button" data-to-bono>Ver mi bono</button>
+        </div>
+      </section>
+
+      <!-- ============ 05 · Tu bono, siempre a mano ============ -->
+      <section class="screen" data-screen="5" aria-labelledby="t5" inert>
+        <p class="step-kicker"><span>05</span>Tu bono, siempre a mano</p>
+        <h1 class="title" id="t5" tabindex="-1">Guardado en tu perfil</h1>
+        <div class="ticket" role="group" aria-label="Tu bono de recogida">
+          <div class="ticket-main">
+            <div class="ticket-top"><span class="logo">Sobra<i>.</i></span><span class="chip">Hoy · 20:59</span></div>
+            <p class="ticket-name" data-name></p>
+            <div class="ticket-item">
+              <span class="e" data-item-emoji aria-hidden="true"></span>
+              <span><b data-item-name></b><small>1 ración · a mitad de precio</small></span>
+            </div>
+          </div>
+          <div class="ticket-stub">
+            <div class="ticket-stub-row">
+              <div>
+                <p class="ticket-label">Código</p>
+                <p class="ticket-code" data-code></p>
+              </div>
+              <span class="barcode" aria-hidden="true"></span>
+            </div>
+            <p class="ticket-foot">Recogida en el mostrador de la cafetería</p>
+          </div>
+        </div>
+        <div class="push">
+          <button class="btn" type="button" data-picked>Ya la he recogido</button>
+        </div>
+      </section>
+
+      <!-- ============ 06 · Valora lo que comes ============ -->
+      <section class="screen" data-screen="6" aria-labelledby="t6" inert>
+        <p class="step-kicker"><span>06</span>Valora lo que comes</p>
+        <div data-rate-form>
+          <h1 class="title" id="t6" tabindex="-1">¿Qué te ha parecido?</h1>
+          <p class="place" style="margin-top: 8px;">Tu ración de <span data-item-lower></span></p>
+          <div class="stars" role="radiogroup" aria-label="Puntuación de 1 a 5 estrellas" data-stars style="margin-top: 20px;"></div>
+          <p class="rate-label" data-rate-label aria-live="polite" style="margin-top: 10px;">Toca las estrellas</p>
+          <div class="field" style="margin-top: 14px;">
+            <label for="comment" class="sr-only">Cuéntanos más (opcional)</label>
+            <textarea class="textarea" id="comment" maxlength="280" placeholder="Cuéntanos más (opcional)"></textarea>
+          </div>
+        </div>
+        <div class="push" data-rate-actions>
+          <button class="btn" type="button" data-send-rating disabled>Enviar valoración</button>
+        </div>
+        <div class="thanks" data-thanks hidden>
+          <p class="thanks-stars" data-thanks-stars aria-hidden="true"></p>
+          <h1 class="title" tabindex="-1" data-thanks-title>¡Gracias, <em data-name></em>! 🧡</h1>
+          <p class="lead">Con tus valoraciones te avisamos antes de tus favoritos.</p>
+          <button class="btn btn-ghost" type="button" data-restart>Volver a empezar</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <canvas id="confetti" aria-hidden="true"></canvas>
+
+  <script>
+    /* =====================================================================
+       CONFIG
+       ===================================================================== */
+    // Google Form interno ("Sobra registro de reservas interno"). Se envía en el paso 3.
+    const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScMwN6qRK-N3BNOQ_DmQK3sC3rCqkDYx7WszsLJTnavyFCA7Q/formResponse";
+    const FORM_FIELD_NAME = "entry.553776143";   // pregunta "nombre"
+    const FORM_FIELD_CHOICE = "entry.1002296941"; // pregunta "elección" (opción múltiple)
+
+    // Lo que se ve en la app y lo que se manda al formulario.
+    // "formValue" debe ser EXACTAMENTE el texto de la opción en el Google Form
+    // (si no coincide, Google descarta la respuesta sin avisar).
+    // Hoy las opciones del formulario son: regaliz · osito · azúcar.
+    const ITEMS = [
+      { id: "regaliz", name: "Regaliz",            emoji: "🍬", left: 8,  formValue: "regaliz" },
+      { id: "ositos",  name: "Ositos de gominola", emoji: "🐻", left: 12, formValue: "osito" },
+      { id: "azucar",  name: "Azúcar",             emoji: "🍭", left: 5,  formValue: "azúcar" }
+    ];
+
+    /* =====================================================================
+       APP
+       ===================================================================== */
+    (function () {
+      const $ = (s, r = document) => r.querySelector(s);
+      const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const state = { step: 1, name: "", item: null, code: "", rating: 0 };
+      const screens = $$("[data-screen]");
+      const bars = $$(".progress i");
+
+      /* ----------------------------- Navegación entre pasos ----------------------------- */
+      function go(step) {
+        const from = state.step;
+        if (step === from) return;
+        const forward = step > from;
+        screens.forEach((s) => {
+          const n = Number(s.dataset.screen);
+          const active = n === step;
+          s.classList.toggle("is-active", active);
+          // la que sale se va hacia el lado contrario
+          s.classList.toggle("is-left", !active && (forward ? n < step : false));
+          s.inert = !active;
+          if (active) s.scrollTop = 0;
+        });
+        state.step = step;
+        $("[data-step-now]").textContent = String(step).padStart(2, "0");
+        bars.forEach((b, i) => b.classList.toggle("on", i < step));
+        const heading = $(`[data-screen="${step}"] .title`);
+        if (heading) setTimeout(() => heading.focus({ preventScroll: true }), 60);
+      }
+
+      function setText(selector, text) { $$(selector).forEach((el) => { el.textContent = text; }); }
+
+      function ripple(btn, e) {
+        const r = btn.getBoundingClientRect();
+        const size = Math.max(r.width, r.height) * 0.6;
+        const dot = document.createElement("span");
+        dot.className = "ripple";
+        const x = (e && e.clientX ? e.clientX : r.left + r.width / 2) - r.left - size / 2;
+        const y = (e && e.clientY ? e.clientY : r.top + r.height / 2) - r.top - size / 2;
+        dot.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px`;
+        btn.appendChild(dot);
+        setTimeout(() => dot.remove(), 700);
+      }
+
+      /* ----------------------------- 01 · Nombre ----------------------------- */
+      const nameInput = $("#name");
+      const enterBtn = $("[data-enter]");
+      const cleanName = (v) => v.replace(/\s+/g, " ").trim();
+      nameInput.addEventListener("input", () => { enterBtn.disabled = cleanName(nameInput.value).length === 0; });
+      $("[data-name-form]").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = cleanName(nameInput.value);
+        if (!name) { nameInput.focus(); return; }
+        state.name = name;
+        setText("[data-name]", name);
+        nameInput.blur(); // cierra el teclado del móvil
+        go(2);
+      });
+
+      /* ----------------------------- 02 · Opciones ----------------------------- */
+      const optionsBox = $("[data-options]");
+      const toReserve = $("[data-to-reserve]");
+      const tickSvg = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#1A1410" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+      function renderOptions() {
+        optionsBox.innerHTML = "";
+        ITEMS.forEach((item) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "option";
+          b.setAttribute("role", "radio");
+          b.dataset.id = item.id;
+          const checked = state.item && state.item.id === item.id;
+          b.setAttribute("aria-checked", String(!!checked));
+          b.tabIndex = checked || (!state.item && item === ITEMS[0]) ? 0 : -1;
+          b.innerHTML =
+            `<span class="option-emoji" aria-hidden="true">${item.emoji}</span>` +
+            `<span><span class="option-name"></span><span class="option-left"><span class="tag-50">-50%</span><span data-left></span></span></span>` +
+            `<span class="option-tick">${tickSvg}</span>`;
+          $(".option-name", b).textContent = item.name;
+          $("[data-left]", b).textContent = item.left > 0 ? `Quedan ${item.left}` : "Agotado";
+          b.disabled = item.left <= 0;
+          optionsBox.appendChild(b);
+        });
+      }
+
+      function select(id) {
+        state.item = ITEMS.find((i) => i.id === id) || null;
+        $$(".option", optionsBox).forEach((b) => {
+          const on = b.dataset.id === id;
+          b.setAttribute("aria-checked", String(on));
+          b.tabIndex = on ? 0 : -1;
+        });
+        toReserve.disabled = !state.item;
+        toReserve.textContent = state.item ? "Seguir" : "Elige una para seguir";
+      }
+
+      optionsBox.addEventListener("click", (e) => {
+        const b = e.target.closest(".option");
+        if (b && !b.disabled) select(b.dataset.id);
+      });
+      optionsBox.addEventListener("keydown", (e) => {
+        if (!["ArrowDown", "ArrowUp", "ArrowRight", "ArrowLeft"].includes(e.key)) return;
+        e.preventDefault();
+        const opts = $$(".option:not(:disabled)", optionsBox);
+        const i = opts.indexOf(document.activeElement);
+        const next = opts[(i + (e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : -1) + opts.length) % opts.length];
+        next.focus();
+        select(next.dataset.id);
+      });
+
+      toReserve.addEventListener("click", () => {
+        if (!state.item) return;
+        fillSummary();
+        go(3);
+      });
+
+      /* ----------------------------- 03 · Reserva ----------------------------- */
+      const reserveBtn = $("[data-reserve]");
+      const stockEl = $("[data-stock]");
+
+      function fillSummary() {
+        const it = state.item;
+        setText("[data-sum-emoji]", it.emoji);
+        setText("[data-sum-name]", it.name);
+        setText("[data-sum-left]", String(it.left));
+        stockEl.classList.remove("bump");
+        reserveBtn.disabled = false;
+        reserveBtn.classList.remove("is-done");
+        reserveBtn.textContent = "Reservar en un toque";
+      }
+
+      // Envío al Google Form por detrás: sin esperar respuesta (no-cors no deja leerla)
+      function sendReservation(name, item) {
+        try {
+          const body = new URLSearchParams();
+          body.append(FORM_FIELD_NAME, name);
+          body.append(FORM_FIELD_CHOICE, item.formValue);
+          fetch(FORM_URL, { method: "POST", mode: "no-cors", body, keepalive: true }).catch(() => {});
+        } catch (err) { /* nunca bloquea la demo */ }
+      }
+
+      reserveBtn.addEventListener("click", (e) => {
+        if (reserveBtn.disabled) return;
+        reserveBtn.disabled = true; // evita reservas dobles por doble toque
+        ripple(reserveBtn, e);
+
+        sendReservation(state.name, state.item);
+
+        // Stock: solo visual y solo en este móvil
+        state.item.left = Math.max(0, state.item.left - 1);
+        stockEl.classList.remove("bump"); void stockEl.offsetWidth; stockEl.classList.add("bump");
+        setTimeout(() => setText("[data-sum-left]", String(state.item.left)), 210);
+
+        state.code = "B-" + (100 + Math.floor(Math.random() * 900));
+        setText("[data-code]", state.code);
+        setText("[data-item-emoji]", state.item.emoji);
+        setText("[data-item-name]", state.item.name);
+        setText("[data-item-lower]", state.item.name.toLowerCase());
+
+        setTimeout(() => {
+          reserveBtn.classList.add("is-done");
+          reserveBtn.textContent = "¡Reservado!";
+        }, 260);
+        setTimeout(() => go(4), 900);
+      });
+
+      $("[data-back]").addEventListener("click", () => go(2));
+
+      /* ----------------------------- 04 → 05 → 06 ----------------------------- */
+      $("[data-to-bono]").addEventListener("click", () => go(5));
+      $("[data-picked]").addEventListener("click", () => go(6));
+
+      /* ----------------------------- 06 · Valoración ----------------------------- */
+      const starsBox = $("[data-stars]");
+      const rateLabel = $("[data-rate-label]");
+      const sendRating = $("[data-send-rating]");
+      const LABELS = ["", "Mejorable", "Normal", "Bien", "Muy bien", "¡Me encanta!"];
+      const starPath = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.75 5.8 6.3.75-4.65 4.35 1.2 6.25L12 16.9l-5.6 3.05 1.2-6.25L2.95 9.35l6.3-.75L12 2.8z" stroke-linejoin="round"/></svg>';
+
+      for (let n = 1; n <= 5; n++) {
+        const s = document.createElement("button");
+        s.type = "button";
+        s.className = "star";
+        s.dataset.n = n;
+        s.setAttribute("role", "radio");
+        s.setAttribute("aria-checked", "false");
+        s.setAttribute("aria-label", `${n} ${n === 1 ? "estrella" : "estrellas"}`);
+        s.tabIndex = n === 1 ? 0 : -1;
+        s.innerHTML = starPath;
+        starsBox.appendChild(s);
+      }
+      const stars = $$(".star", starsBox);
+
+      function rate(n) {
+        state.rating = n;
+        stars.forEach((s, i) => {
+          const on = i < n;
+          s.classList.toggle("on", on);
+          s.setAttribute("aria-checked", String(i === n - 1));
+          s.tabIndex = i === n - 1 ? 0 : -1;
+          s.classList.remove("pulse");
+          if (on) { void s.offsetWidth; s.style.animationDelay = ""; s.classList.add("pulse"); }
+        });
+        rateLabel.textContent = LABELS[n];
+        sendRating.disabled = false;
+      }
+      starsBox.addEventListener("click", (e) => {
+        const s = e.target.closest(".star");
+        if (s) rate(Number(s.dataset.n));
+      });
+      starsBox.addEventListener("keydown", (e) => {
+        if (!["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"].includes(e.key)) return;
+        e.preventDefault();
+        const d = e.key === "ArrowRight" || e.key === "ArrowUp" ? 1 : -1;
+        const n = Math.min(5, Math.max(1, (state.rating || 0) + d));
+        rate(n);
+        stars[n - 1].focus();
+      });
+
+      sendRating.addEventListener("click", (e) => {
+        if (!state.rating) return;
+        ripple(sendRating, e);
+        $("[data-rate-form]").hidden = true;
+        $("[data-rate-actions]").hidden = true;
+        // Estrellas que aparecen una a una (las que ha puesto la persona)
+        $("[data-thanks-stars]").innerHTML = Array.from({ length: state.rating }, (_, i) => `<span style="animation-delay:${120 + i * 110}ms">★</span>`).join("");
+        const thanks = $("[data-thanks]");
+        thanks.hidden = false;
+        $("[data-thanks-title]").focus({ preventScroll: true });
+        confetti();
+      });
+
+      /* ----------------------------- Volver a empezar ----------------------------- */
+      // El stock que ya se ha reservado en este móvil se mantiene (es la "cafetería" de este móvil)
+      $("[data-restart]").addEventListener("click", () => {
+        state.name = ""; state.item = null; state.code = ""; state.rating = 0;
+        nameInput.value = "";
+        enterBtn.disabled = true;
+        renderOptions(); select(null);
+        stars.forEach((s, i) => { s.classList.remove("on", "pulse"); s.setAttribute("aria-checked", "false"); s.tabIndex = i === 0 ? 0 : -1; });
+        rateLabel.textContent = "Toca las estrellas";
+        sendRating.disabled = true;
+        $("#comment").value = "";
+        $("[data-rate-form]").hidden = false;
+        $("[data-rate-actions]").hidden = false;
+        $("[data-thanks]").hidden = true;
+        // vuelve al paso 1 deslizando hacia atrás
+        go(1);
+      });
+
+      /* ----------------------------- Confeti ----------------------------- */
+      const canvas = $("#confetti");
+      const ctx = canvas.getContext("2d");
+      const COLORS = ["#FF5F1F", "#FFC53D", "#1A1410", "#FF7438", "#F3EADA"];
+      let pieces = [];
+      let running = false;
+
+      function confetti() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = innerWidth * dpr;
+        canvas.height = innerHeight * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const count = reduceMotion ? 70 : 160;
+        for (let i = 0; i < count; i++) {
+          const fromLeft = i % 2 === 0;
+          pieces.push({
+            x: fromLeft ? -10 : innerWidth + 10,
+            y: innerHeight * (0.55 + Math.random() * 0.25),
+            vx: (fromLeft ? 1 : -1) * (4 + Math.random() * 7),
+            vy: -(9 + Math.random() * 9),
+            w: 6 + Math.random() * 6,
+            h: 8 + Math.random() * 8,
+            r: Math.random() * Math.PI,
+            vr: (Math.random() - 0.5) * 0.35,
+            c: COLORS[i % COLORS.length],
+            life: 0
+          });
+        }
+        if (!running) { running = true; requestAnimationFrame(tick); }
+      }
+      function tick() {
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        pieces.forEach((p) => {
+          p.life++;
+          p.vy += 0.32;          // gravedad
+          p.vx *= 0.985;         // rozamiento
+          p.x += p.vx; p.y += p.vy; p.r += p.vr;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.r);
+          ctx.fillStyle = p.c;
+          ctx.globalAlpha = Math.max(0, 1 - p.life / 190);
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.life / 6)));
+          ctx.restore();
+        });
+        pieces = pieces.filter((p) => p.y < innerHeight + 40 && p.life < 190);
+        if (pieces.length) requestAnimationFrame(tick);
+        else { running = false; ctx.clearRect(0, 0, innerWidth, innerHeight); }
+      }
+
+      /* ----------------------------- Inicio ----------------------------- */
+      renderOptions();
+    })();
+  </script>
+</body>
+</html>
