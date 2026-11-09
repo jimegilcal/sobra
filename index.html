@@ -2,13 +2,13 @@
 <html lang="es">
 <head>
   <!-- =====================================================================
-       [ANALÍTICA · PENDIENTE] Google Tag Manager — contenedor GTM-KHR732S9
-       Aquí, lo más arriba posible del <head>, irá el snippet de GTM.
-       NO está activo todavía. Lo añadiremos junto al banner de consentimiento
-       (Consent Mode v2: todo "denied" por defecto hasta que la persona acepte).
-
-       Evento page_view → lo enviará la etiqueta de GA4 (G-6CBGKK7G6L)
-       configurada dentro de GTM al cargar la página, solo con consentimiento.
+       ANALÍTICA · orden de carga en el <head>
+       1. Consent Mode v2: consentimiento por defecto, TODO "denied".
+       2. Google Tag Manager (GTM-KHR732S9): carga siempre; Consent Mode impide
+          que las etiquetas envíen datos hasta que la persona acepte.
+       page_view → lo envía la etiqueta de GA4 (G-6CBGKK7G6L) configurada en GTM.
+       Si cambia el contenedor, actualiza el id aquí (2 sitios: <head> y <noscript>)
+       y en GTM_CONTAINER_ID del bloque CONFIG.
        ===================================================================== -->
 
   <meta charset="utf-8">
@@ -28,7 +28,27 @@
       ad_user_data: "denied",
       ad_personalization: "denied"
     });
+    // Si ya aceptó en una visita anterior, se aplica AQUÍ, antes de que cargue GTM,
+    // para que el page_view de esta visita también se mida con consentimiento.
+    try {
+      if (localStorage.getItem("sobra_consent") === "granted") {
+        gtag("consent", "update", {
+          analytics_storage: "granted",
+          ad_storage: "denied",
+          ad_user_data: "denied",
+          ad_personalization: "denied"
+        });
+      }
+    } catch (e) { /* sin acceso a localStorage: se queda en "denied" */ }
   </script>
+
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-KHR732S9');</script>
+  <!-- End Google Tag Manager -->
   <title>Sobra · A las 20:59, lo que sobra es tuyo</title>
   <meta name="description" content="Cada día a las 20:59, todo lo que la cafetería de la uni no ha vendido, a mitad de precio. Para hoy, para mañana o para el congelador. ¿Lo usarías? Tu respuesta decide si Sobra existe.">
   <meta name="theme-color" content="#FAF4EA">
@@ -913,7 +933,10 @@
   </style>
 </head>
 <body>
-  <!-- [ANALÍTICA · PENDIENTE] Aquí, justo tras abrir <body>, irá el <noscript> con el iframe de GTM. -->
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KHR732S9"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
 
   <div class="read-progress" data-read-progress aria-hidden="true"></div>
   <a class="skip-link" href="#main">Saltar al contenido</a>
@@ -1456,8 +1479,8 @@
     const SURVEY_URL = "https://docs.google.com/forms/d/e/1FAIpQLSc-bqyJX5cfx2xGuXblVcj57SzZhcv-Vx7eH9APyMMryXtedg/viewform?usp=header";          // Enlace a la encuesta (CTA 1). Vacío = el botón avisa "enlace pendiente".
     const WAITLIST_URL = "";        // Enlace a la lista de espera (CTA 2, al final). Vacío = el botón avisa "enlace pendiente".
     const RESPONSE_COUNT = 0;       // Nº REAL de respuestas. 0 = no se muestra la prueba social.
-    const GA_MEASUREMENT_ID = "G-6CBGKK7G6L";   // GA4 · aún sin usar (paso de analítica)
-    const GTM_CONTAINER_ID = "GTM-KHR732S9";    // GTM · aún sin usar (paso de analítica)
+    const GA_MEASUREMENT_ID = "G-6CBGKK7G6L";   // GA4 · se configura dentro de GTM (referencia)
+    const GTM_CONTAINER_ID = "GTM-KHR732S9";    // GTM · debe coincidir con el id del <head> y del <noscript>
     const SITE_URL = "https://jimegilcal.github.io/sobra/"; // Enlace que se comparte
     const DROP_HOUR = 20;           // Hora a la que sale lo que ha sobrado (hora de Madrid)
     const DROP_MINUTE = 59;
@@ -1469,22 +1492,24 @@
       "use strict";
 
       /* ---------------------------------------------------------------
-         [ANALÍTICA · INACTIVA] Punto único de envío de eventos.
-         Ahora mismo NO hace nada y no se envía ningún dato.
-         En el paso de GTM sustituiremos el cuerpo por (solo envía si hay consentimiento):
-           window.dataLayer = window.dataLayer || [];
-           window.dataLayer.push({ event: name, ...params });
+         [ANALÍTICA] Punto único de envío de eventos al dataLayer de GTM.
+         Eventos de esta página:
+           cta_click     { cta_id: "survey_hero" | "survey_sticky" | "waitlist_closing" }
+           share_click   { method: "whatsapp" | "outlook" | "gmail" | "email" | "copy" | "native" }
+           privacy_open  (sin parámetros)
+           scroll_depth  { percent: 25 | 50 | 75 | 90 }  (una vez por hito y visita)
+         page_view no se envía desde aquí: lo manda la etiqueta de GA4 en GTM.
+         Consent Mode decide en GTM si las etiquetas pueden enviar datos.
          --------------------------------------------------------------- */
-      function track(name, params) { /* vacío a propósito */ }
+      function track(eventName, params) {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event: eventName, ...params });
+      }
 
-      /* [ANALÍTICA · PENDIENTE] page_view
-         No se dispara desde aquí: lo enviará la etiqueta de GA4 en GTM al cargar
-         la página (ver comentario en <head>), solo tras consentimiento. */
-
-      /* [ANALÍTICA · PENDIENTE] scroll_depth
-         Opción A: activador nativo "Profundidad de desplazamiento" de GTM (25/50/75/90 %).
-         Opción B: dentro de onFrame() (más abajo), llamar a track("scroll_depth", { percent })
-         una sola vez por umbral. Lo decidimos juntos en ese paso. */
+      // Aviso en consola si el contenedor cargado en el <head> no coincide con el de CONFIG
+      if (!document.querySelector('script[src*="gtm.js?id=' + GTM_CONTAINER_ID + '"]')) {
+        console.warn("[Sobra] El contenedor de GTM del <head> no coincide con GTM_CONTAINER_ID (" + GTM_CONTAINER_ID + ").");
+      }
 
       const $ = (sel, ctx = document) => ctx.querySelector(sel);
       const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
@@ -1541,8 +1566,8 @@
           return;
         }
 
-        // [ANALÍTICA · PENDIENTE] cta_click
-        // cta_id: survey_hero | survey_sticky | waitlist_closing
+        // [ANALÍTICA] cta_click · cta_id: survey_hero | survey_sticky | waitlist_closing
+        // (solo cuando el enlace existe; si aún no hay URL se muestra un aviso y no se mide)
         track("cta_click", { cta_id: cta.dataset.cta });
       });
 
@@ -1575,8 +1600,7 @@
             event.preventDefault();
             try { await navigator.share({ title: "Sobra", text: shareMsg.trim(), url: SITE_URL }); } catch (e) { /* cancelado */ }
           }
-          // [ANALÍTICA · PENDIENTE] share_click
-          // method: whatsapp | outlook | gmail | email | copy | native
+          // [ANALÍTICA] share_click · method: whatsapp | outlook | gmail | email | copy | native
           track("share_click", { method });
         });
       });
@@ -1589,8 +1613,8 @@
         btn.addEventListener("click", () => {
           if (typeof dialog.showModal === "function") dialog.showModal();
           else dialog.setAttribute("open", "");
-          // [ANALÍTICA · PENDIENTE] privacy_open
-          track("privacy_open", {});
+          // [ANALÍTICA] privacy_open (desde el footer o desde el banner de cookies)
+          track("privacy_open");
         });
       });
       dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
@@ -1612,7 +1636,7 @@
           ad_personalization: "denied"
         });
         analyticsGranted = true;
-        // Aquí se cargará GTM solo si el consentimiento está en 'granted'
+        // GTM ya se carga siempre desde el <head>; este "update" es lo que desbloquea sus etiquetas de analítica.
       }
 
       function showCookieBanner(focus) {
@@ -1869,11 +1893,25 @@
 
       /* ----------------------------- Bucle de scroll y redimensionado ----------------------------- */
       const readBar = $("[data-read-progress]");
+      // [ANALÍTICA] scroll_depth: se envía una sola vez por hito (25, 50, 75, 90 %) y visita
+      const SCROLL_MILESTONES = [25, 50, 75, 90];
+      const scrollReached = new Set();
+      function checkScrollDepth(progress) {
+        const percent = progress * 100;
+        SCROLL_MILESTONES.forEach((m) => {
+          if (percent >= m && !scrollReached.has(m)) {
+            scrollReached.add(m);
+            track("scroll_depth", { percent: m });
+          }
+        });
+      }
       let ticking = false;
       function onFrame() {
         ticking = false;
         const max = document.documentElement.scrollHeight - window.innerHeight;
-        readBar.style.transform = "scaleX(" + (max > 0 ? clamp(window.scrollY / max, 0, 1) : 0).toFixed(4) + ")";
+        const progress = max > 0 ? clamp(window.scrollY / max, 0, 1) : 0;
+        readBar.style.transform = "scaleX(" + progress.toFixed(4) + ")";
+        if (max > 0) checkScrollDepth(progress);
         checkReveal();
         maybeStartFlow();
         header.classList.toggle("is-scrolled", window.scrollY > 4);
