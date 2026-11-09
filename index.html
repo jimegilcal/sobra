@@ -50,7 +50,7 @@
   })(window,document,'script','dataLayer','GTM-KHR732S9');</script>
   <!-- End Google Tag Manager -->
   <title>Sobra · A las 20:59, lo que sobra es tuyo</title>
-  <meta name="description" content="Cada día a las 20:59, todo lo que la cafetería de la uni no ha vendido, a mitad de precio. Para hoy, para mañana o para el congelador. ¿Lo usarías? Tu respuesta decide si Sobra existe.">
+  <meta name="description" content="Cada día a las 20:59, todo lo que la cafetería de la uni no ha vendido, a mitad de precio. Para hoy, para mañana o para el congelador. Ya en tu uni: únete a la lista de espera.">
   <meta name="theme-color" content="#FAF4EA">
   <meta name="color-scheme" content="light">
   <link rel="canonical" href="https://jimegilcal.github.io/sobra/">
@@ -60,7 +60,7 @@
   <meta property="og:locale" content="es_ES">
   <meta property="og:url" content="https://jimegilcal.github.io/sobra/">
   <meta property="og:title" content="A las 20:59, lo que sobra es tuyo.">
-  <meta property="og:description" content="Todo lo que la cafetería no ha vendido, a mitad de precio. Para hoy, para mañana o para el congelador. Tu respuesta decide si Sobra existe.">
+  <meta property="og:description" content="Todo lo que la cafetería no ha vendido, a mitad de precio. Para hoy, para mañana o para el congelador. Ya en tu uni: únete a la lista de espera.">
 
   <!-- Favicon: reloj naranja en SVG embebido (sin archivos externos) -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='29' fill='%23FF5F1F'/%3E%3Cpath d='M32 32V14M32 32H17' stroke='%231A1410' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
@@ -259,6 +259,7 @@
     .btn-primary:active { transform: translateY(0); box-shadow: none; }
     .btn-primary .arrow { transition: transform var(--t) var(--ease); }
     .btn-primary:hover .arrow { transform: translateX(4px); }
+    .btn-primary:hover .arrow--down { transform: translateY(3px); }
     .btn-lg { min-height: 60px; padding: 0 32px; font-size: 1.125rem; }
     @media (max-width: 559px) { .btn-lg { padding: 0 18px; font-size: 1.0625rem; } }
 
@@ -348,6 +349,12 @@
     .countdown-time .digit.roll { animation: roll 380ms var(--ease-out); }
     @keyframes roll { from { transform: translateY(-60%); opacity: 0; } to { transform: none; opacity: 1; } }
     .countdown.is-urgent .countdown-time { color: var(--orange); }
+    .launch-chip {
+      margin-right: 6px; padding: 4px 10px; border-radius: 999px;
+      background: var(--ink); color: var(--paper);
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    #closing-title:focus { outline: none; }
 
     .underline { text-decoration: underline; text-decoration-color: var(--yellow); text-decoration-thickness: 0.12em; text-underline-offset: 0.1em; text-decoration-skip-ink: none; }
 
@@ -825,6 +832,14 @@
     .site-footer { padding-block: 48px 56px; border-top: 1px solid var(--line); }
     .footer-inner { display: grid; gap: 10px; max-width: 46rem; font-size: 0.875rem; color: var(--muted); }
     .footer-inner strong { color: var(--body); font-weight: 600; }
+    /* Insignia de transparencia: discreta pero siempre visible */
+    .transparency {
+      display: flex; gap: 10px; align-items: flex-start; justify-self: start;
+      padding: 10px 14px; border-radius: 14px; background: var(--cream); border: 1px solid var(--line);
+      color: var(--body); line-height: 1.5;
+    }
+    .transparency strong { color: var(--ink); }
+    .transparency-dot { flex: none; width: 8px; height: 8px; margin-top: 0.5em; border-radius: 50%; background: var(--orange); }
     .footer-inner a { color: var(--body); text-underline-offset: 3px; }
     .footer-links { display: flex; flex-wrap: wrap; gap: 0 24px; margin-top: 4px; }
     .link-btn { min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer; font-size: 0.875rem; font-weight: 600; color: var(--body); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line); transition: text-decoration-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease); }
@@ -950,11 +965,12 @@
   </header>
 
   <main id="main">
-    <!-- ============================== 1 · HERO + CTA 1 (ENCUESTA) ============================== -->
+    <!-- ============================== 1 · HERO (lanzamiento) + CTA → lista de espera ============================== -->
     <section class="hero fs" data-fit="hero" aria-labelledby="hero-title">
       <div class="hero-inner" data-fit-inner>
         <div class="hero-copy">
           <p class="countdown load-in" data-countdown role="timer" aria-live="off" style="--d: 0ms">
+            <span class="launch-chip">Ya disponible</span>
             <span class="countdown-dot" aria-hidden="true"></span>
             <span data-countdown-label>Lo de hoy sale en</span>
             <span class="countdown-time" data-countdown-time>··:··:··</span>
@@ -978,7 +994,7 @@
             </span>
           </p>
 
-          <p class="lead load-in" style="--d: 600ms">Estés en clase, en la biblioteca o en casa a dos pasos de la uni.</p>
+          <p class="lead load-in" style="--d: 600ms">Ya en la cafetería de tu uni. Estés en clase, en la biblioteca o en casa a dos pasos.</p>
           </div>
         </div>
 
@@ -986,7 +1002,7 @@
         <!-- Escaparate: 14 platos distintos, uno a uno, en la misma pantalla que el titular -->
         <div class="hero-dishes load-in" style="--d: 820ms" aria-labelledby="dishes-title" aria-roledescription="carrusel">
           <div class="wrap dishes-bar">
-            <p class="kicker" id="dishes-title">Lo que podría ser tuyo en un instante</p>
+            <p class="kicker" id="dishes-title">Lo que puede ser tuyo en un instante</p>
             <div class="dishes-controls">
               <p class="count" aria-live="off"><b data-dish-count>01</b> <span>/ 14</span></p>
               <button class="arrow-btn arrow-btn--soft arrow-btn--sm" type="button" data-dish-prev aria-label="Plato anterior">
@@ -1006,7 +1022,7 @@
             <li class="dish is-active" data-dish><div class="dish-photo ph food--lasana"><span class="tag-50">-50%</span></div><p class="dish-name">Lasaña gratinada</p><p class="dish-price">2,50 €<s>5,00 €</s></p></li>
             <li class="dish" data-dish><div class="dish-photo ph food--macarrones"><span class="tag-50">-50%</span></div><p class="dish-name">Macarrones con tomate</p><p class="dish-price">2,00 €<s>4,00 €</s></p></li>
             <li class="dish" data-dish><div class="dish-photo ph food--crema"><span class="tag-50">-50%</span></div><p class="dish-name">Crema de calabaza</p><p class="dish-price">1,50 €<s>3,00 €</s></p></li>
-            <li class="dish" data-dish><div class="dish-photo ph food--empanado"><span class="tag-50">-50%</span></div><p class="dish-name">Pollo empanado con patatas</p><p class="dish-price">2,75 €<s>5,50 €</s></p></li>
+            <li class="dish" data-dish><div class="dish-photo ph food--empanado"><span class="tag-50">-50%</span></div><p class="dish-name">Pollo empanado</p><p class="dish-price">2,75 €<s>5,50 €</s></p></li>
             <li class="dish" data-dish><div class="dish-photo ph food--arroz"><span class="tag-50">-50%</span></div><p class="dish-name">Arroz con verduras</p><p class="dish-price">2,00 €<s>4,00 €</s></p></li>
             <li class="dish" data-dish><div class="dish-photo ph food--tortilla"><span class="tag-50">-50%</span></div><p class="dish-name">Tortilla de patata</p><p class="dish-price">1,50 €<s>3,00 €</s></p></li>
             <li class="dish" data-dish><div class="dish-photo ph food--carrilleras"><span class="tag-50">-50%</span></div><p class="dish-name">Carrilleras con puré de patata</p><p class="dish-price">3,25 €<s>6,50 €</s></p></li>
@@ -1021,24 +1037,24 @@
           </div>
         </div>
 
-        <!-- CTA 1: la encuesta, al final del recorrido visual (gancho → platos → acción) -->
+        <!-- CTA del hero: lleva (scroll suave) a la sección final #cierre, donde está la lista de espera -->
         <aside class="survey-card load-in" aria-labelledby="survey-title" style="--d: 950ms">
           <div class="survey-text">
-          <p class="kicker">Tu opinión decide</p>
-          <h2 id="survey-title">Sobra todavía no existe.</h2>
-          <p>Para crearla necesitamos saber qué piensas. Responde en 3 minutos: con tu opinión podremos empezar a construirla.</p>
-          <ul class="survey-facts" aria-label="Sobre la encuesta">
-            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="#1A1410" stroke-width="2"/><path d="M12 12V7.5M12 12h3.5" stroke="#FF5F1F" stroke-width="2.2" stroke-linecap="round"/></svg>3 minutos</li>
-            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3Z" stroke="#1A1410" stroke-width="2" stroke-linejoin="round"/></svg>Anónima</li>
-            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#1A1410" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Sin registro</li>
+          <p class="kicker">Acceso por orden de lista</p>
+          <h2 id="survey-title">Entra entre los primeros.</h2>
+          <p>Damos acceso a Sobra por orden de lista de espera. Únete y empieza a usarlo antes que nadie en tu uni.</p>
+          <ul class="survey-facts" aria-label="Sobre la lista de espera">
+            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 3 5 13.5h6L10 21l8-10.5h-6L13 3Z" stroke="#1A1410" stroke-width="2" stroke-linejoin="round"/></svg>Acceso prioritario</li>
+            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5" stroke="#1A1410" stroke-width="2"/><path d="M4 7l8 6 8-6" stroke="#FF5F1F" stroke-width="2" stroke-linejoin="round"/></svg>Solo tu email</li>
+            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#1A1410" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Sin spam</li>
           </ul>
           </div>
           <div class="survey-action">
-          <a class="btn btn-primary btn-lg" href="#" data-link="survey" data-cta="survey_hero" data-hero-cta>
-            Decide si Sobra existe <span class="btn-meta">· 3 min</span>
-            <svg class="arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <a class="btn btn-primary btn-lg" href="#cierre" data-cta="hero" data-scroll-to="#cierre" data-hero-cta>
+            Únete a la lista de espera
+            <svg class="arrow arrow--down" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v13M6 12l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </a>
-          <p class="micro">Anónima · sin nombre ni email · solo mayores de 18</p>
+          <p class="micro">Solo tu email · se borra al acabar el curso</p>
           <p class="social-proof" data-social-proof hidden>
             <span class="dot" aria-hidden="true"></span>
             <span><span class="count-n" data-response-count></span> <span data-response-text></span></span>
@@ -1135,9 +1151,9 @@
     <section class="how fs" data-how data-fit aria-labelledby="how-title" aria-roledescription="carrusel">
       <div class="how-inner" data-fit-inner>
         <div class="wrap how-head">
-          <p class="kicker">Lo que podría ser</p>
+          <p class="kicker">Así de fácil</p>
           <div class="how-title-row">
-            <h2 id="how-title">Cómo funcionaría</h2>
+            <h2 id="how-title">Cómo funciona</h2>
             <div class="how-nav">
               <p class="count" aria-live="polite"><span class="visually-hidden">Paso </span><b data-how-count>01</b> <span>/ 06</span></p>
               <div class="arrows">
@@ -1346,7 +1362,7 @@
             <div class="how-text">
               <span class="how-num">06</span>
               <h3>Valora lo que comes</h3>
-              <p>Puntúa cada plato y sabrás cuáles te gustan más. Te avisaremos antes de tus favoritos.</p>
+              <p>Puntúa cada plato y descubre cuáles te gustan más. Te avisamos antes de tus favoritos.</p>
             </div>
           </li>
         </ol>
@@ -1357,15 +1373,16 @@
     <section class="closing fs" id="cierre" data-fit aria-labelledby="closing-title">
       <div class="wrap closing-grid" data-fit-inner>
         <div class="closing-copy">
-          <p class="kicker" data-reveal>Sé de los primeros en probarlo</p>
-          <h2 id="closing-title" data-reveal style="--d: 80ms">Únete a la lista de espera.</h2>
+          <p class="kicker" data-reveal>Nuestros primeros clientes</p>
+          <h2 id="closing-title" tabindex="-1" data-reveal style="--d: 80ms">Únete a la lista de espera.</h2>
           <ul class="perks" data-reveal style="--d: 160ms">
-            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFC53D"/><path d="M7.5 12.5l3 3 6-6.5" stroke="#1A1410" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Descuentos de lanzamiento si Sobra sale adelante</li>
-            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFC53D"/><path d="M7.5 12.5l3 3 6-6.5" stroke="#1A1410" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>El prototipo completo antes que nadie: pedidos, bono y valoraciones</li>
+            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFC53D"/><path d="M7.5 12.5l3 3 6-6.5" stroke="#1A1410" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Descuentos de lanzamiento para los primeros de la lista</li>
+            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFC53D"/><path d="M7.5 12.5l3 3 6-6.5" stroke="#1A1410" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Acceso prioritario a la app: pedidos, bono y valoraciones</li>
             <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFC53D"/><path d="M7.5 12.5l3 3 6-6.5" stroke="#1A1410" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Solo tu email, y se borra al acabar el curso</li>
           </ul>
           <div class="closing-actions" data-reveal style="--d: 240ms">
-            <a class="btn btn-primary btn-lg" href="#" data-link="waitlist" data-cta="waitlist_closing">
+            <!-- Único CTA que abre de verdad WAITLIST_URL -->
+            <a class="btn btn-primary btn-lg" href="#" data-link="waitlist" data-cta="closing">
               Únete a la lista de espera
               <svg class="arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </a>
@@ -1374,7 +1391,7 @@
           <!-- Compartir -->
           <div class="share" data-reveal style="--d: 320ms">
             <h3>¿Conoces a alguien que nos necesite?</h3>
-            <p>Pásaselo: cuantas más respuestas, antes sabremos si Sobra tiene sentido.</p>
+            <p>Sobra ya está en la cafetería de la uni. Pásaselo a quien vaya justo de tiempo, de dinero o de ganas de cocinar.</p>
             <div class="share-buttons">
               <a class="share-btn share-btn--main" id="share-whatsapp" href="#" data-share="whatsapp" target="_blank" rel="noopener">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#25D366" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
@@ -1418,7 +1435,8 @@
     <div class="wrap footer-inner">
       <a class="logo" href="./" aria-label="Sobra, inicio">Sobra<span>.</span></a>
       <p>Proyecto académico de estudiantes de ICADE · Data in Communication and Society.</p>
-      <p><strong>El servicio no existe todavía.</strong> Esta página es un experimento de validación: no se hacen reservas ni se vende nada. Platos, precios y pantallas son ejemplos.</p>
+      <!-- Insignia de transparencia: debe mantenerse siempre visible -->
+      <p class="transparency"><span class="transparency-dot" aria-hidden="true"></span><span><strong>Sobra es un proyecto académico de ICADE.</strong> Esta web simula el lanzamiento real del servicio con fines de evaluación del curso Data in Communication and Society; no se procesan pagos ni pedidos reales. Al unirte a la lista, recibirás el prototipo de la app.</span></p>
       <p>Fotos de comida: <a href="https://www.rawpixel.com/" target="_blank" rel="noopener">rawpixel</a>, dominio público (CC0); tortilla: «<a href="https://commons.wikimedia.org/w/index.php?curid=11347080" target="_blank" rel="noopener">Pinchos de tortilla en Barcelona</a>», de flydime, <a href="https://creativecommons.org/licenses/by-sa/2.0/deed.es" target="_blank" rel="noopener">CC BY-SA 2.0</a> (recortada).</p>
       <nav class="footer-links" aria-label="Información legal">
         <button class="link-btn" type="button" data-open-privacy>Aviso de privacidad</button>
@@ -1428,13 +1446,14 @@
   </footer>
 
   <!-- ============================== BARRA STICKY (solo móvil) ============================== -->
-  <div class="sticky-cta" data-sticky role="region" aria-label="Acceso rápido a la encuesta" aria-hidden="true">
+  <div class="sticky-cta" data-sticky role="region" aria-label="Acceso rápido a la lista de espera" aria-hidden="true">
     <div class="sticky-time">
       <span class="label" data-sticky-label>sale en</span>
       <span class="value" data-countdown-short>··:··:··</span>
     </div>
-    <a class="btn btn-primary" href="#" data-link="survey" data-cta="survey_sticky">
-      Decide si Sobra existe <span class="btn-meta">· 3 min</span>
+    <!-- Lleva (scroll suave) a la sección final #cierre -->
+    <a class="btn btn-primary" href="#cierre" data-cta="sticky" data-scroll-to="#cierre">
+      Únete a la lista de espera
     </a>
   </div>
 
@@ -1443,7 +1462,7 @@
     <div class="dialog-inner">
       <p class="dialog-title" id="privacy-title">Aviso de privacidad</p>
       <p class="placeholder-note"><strong>[Marcador · texto pendiente de redactar]</strong></p>
-      <p>Aquí irá el aviso de privacidad completo: quién es responsable del proyecto, qué datos se recogen (la encuesta es anónima; el email solo si te apuntas a la lista de espera), para qué se usan, cuánto tiempo se guardan (hasta el final del curso), qué herramientas de medición se utilizan y cómo ejercer tus derechos.</p>
+      <p>Aquí va el aviso de privacidad completo: quién es responsable del proyecto, qué datos se recogen (solo el email, si te apuntas a la lista de espera), para qué se usan, cuánto tiempo se guardan (hasta el final del curso), qué herramientas de medición se utilizan y cómo ejercer tus derechos.</p>
       <form method="dialog" class="dialog-actions">
         <button class="btn btn-outline" type="submit">Cerrar</button>
       </form>
@@ -1476,9 +1495,9 @@
     /* =====================================================================
        CONFIG · edita solo este bloque
        ===================================================================== */
-    const SURVEY_URL = "https://docs.google.com/forms/d/e/1FAIpQLSc-bqyJX5cfx2xGuXblVcj57SzZhcv-Vx7eH9APyMMryXtedg/viewform?usp=header";          // Enlace a la encuesta (CTA 1). Vacío = el botón avisa "enlace pendiente".
-    const WAITLIST_URL = "";        // Enlace a la lista de espera (CTA 2, al final). Vacío = el botón avisa "enlace pendiente".
-    const RESPONSE_COUNT = 0;       // Nº REAL de respuestas. 0 = no se muestra la prueba social.
+    const SURVEY_URL = "https://docs.google.com/forms/d/e/1FAIpQLSc-bqyJX5cfx2xGuXblVcj57SzZhcv-Vx7eH9APyMMryXtedg/viewform?usp=header";          // Encuesta: ya NO se usa en la web (se gestiona aparte por WhatsApp/QR). Se conserva como referencia.
+    const WAITLIST_URL = "";        // Lista de espera: solo la abre el CTA de la sección final (#cierre). Vacío = aviso "estamos abriendo nuevas plazas".
+    const RESPONSE_COUNT = 0;       // Nº REAL de personas en la lista de espera. 0 = no se muestra la prueba social.
     const GA_MEASUREMENT_ID = "G-6CBGKK7G6L";   // GA4 · se configura dentro de GTM (referencia)
     const GTM_CONTAINER_ID = "GTM-KHR732S9";    // GTM · debe coincidir con el id del <head> y del <noscript>
     const SITE_URL = "https://jimegilcal.github.io/sobra/"; // Enlace que se comparte
@@ -1494,10 +1513,11 @@
       /* ---------------------------------------------------------------
          [ANALÍTICA] Punto único de envío de eventos al dataLayer de GTM.
          Eventos de esta página:
-           cta_click     { cta_id: "survey_hero" | "survey_sticky" | "waitlist_closing" }
-           share_click   { method: "whatsapp" | "outlook" | "gmail" | "email" | "copy" | "native" }
-           privacy_open  (sin parámetros)
-           scroll_depth  { percent: 25 | 50 | 75 | 90 }  (una vez por hito y visita)
+           cta_click          { location: "hero" | "sticky" | "closing" }
+           share_click        { method: "whatsapp" | "outlook" | "gmail" | "email" | "copy" | "native" }
+           privacy_open       (sin parámetros)
+           scroll_depth       { percent: 25 | 50 | 75 | 90 }  (una vez por hito y visita)
+           proto_screen_time  { screen: "01".."06", seconds: n }  (≥ 1 s en esa pantalla de "Cómo funciona")
          page_view no se envía desde aquí: lo manda la etiqueta de GA4 en GTM.
          Consent Mode decide en GTM si las etiquetas pueden enviar datos.
          --------------------------------------------------------------- */
@@ -1539,7 +1559,7 @@
           el.dataset.pending = "true";
         }
       }
-      $$('[data-link="survey"]').forEach((el) => wireLink(el, SURVEY_URL));
+      // (La encuesta ya no tiene botones en la interfaz; SURVEY_URL queda solo en CONFIG.)
       $$('[data-link="waitlist"]').forEach((el) => wireLink(el, WAITLIST_URL));
 
       /* ----------------------------- Prueba social ----------------------------- */
@@ -1548,32 +1568,58 @@
         const one = responses === 1;
         $$("[data-social-proof]").forEach((el) => {
           $("[data-response-count]", el).textContent = responses.toLocaleString("es-ES");
-          $("[data-response-text]", el).textContent = one ? "estudiante ya ha respondido" : "estudiantes ya han respondido";
+          $("[data-response-text]", el).textContent = one ? "estudiante ya está en la lista" : "estudiantes ya están en la lista";
           el.hidden = false;
         });
       }
 
       /* ----------------------------- Clics en CTAs ----------------------------- */
+      // hero y sticky → scroll suave hasta #cierre · closing → abre WAITLIST_URL (único enlace externo)
+      // Mientras dura el scroll automático, la animación del problema no arranca aunque se pase por ella
+      let autoScrolling = false;
+      let autoScrollTimer;
+      function endAutoScroll() {
+        autoScrolling = false;
+        window.removeEventListener("scroll", onAutoScroll);
+      }
+      function onAutoScroll() {
+        clearTimeout(autoScrollTimer);
+        autoScrollTimer = setTimeout(endAutoScroll, 250); // termina cuando deja de haber scroll
+      }
+      function scrollToSection(selector) {
+        const target = $(selector);
+        if (!target) return;
+        autoScrolling = true;
+        window.addEventListener("scroll", onAutoScroll, { passive: true });
+        clearTimeout(autoScrollTimer);
+        autoScrollTimer = setTimeout(endAutoScroll, 1500); // por si ya estaba en el destino y no hay scroll
+        target.scrollIntoView({ behavior: "smooth", block: "start" }); // la cabecera fija se respeta con scroll-margin-top
+        // Accesibilidad: el foco pasa al título de la sección, sin volver a desplazar la página
+        const heading = $("#closing-title");
+        if (heading) setTimeout(() => heading.focus({ preventScroll: true }), 700);
+      }
+
       document.addEventListener("click", (event) => {
         const cta = event.target.closest("[data-cta]");
         if (!cta) return;
 
-        if (cta.dataset.pending === "true") {
+        // [ANALÍTICA] cta_click · location: hero | sticky | closing
+        track("cta_click", { location: cta.dataset.cta });
+
+        if (cta.dataset.scrollTo) {
           event.preventDefault();
-          showToast(cta.dataset.link === "waitlist"
-            ? "La lista de espera abre muy pronto. ¡Vuelve en unos días!"
-            : "El enlace a la encuesta aún no está listo. ¡Vuelve en un rato!");
+          scrollToSection(cta.dataset.scrollTo);
           return;
         }
-
-        // [ANALÍTICA] cta_click · cta_id: survey_hero | survey_sticky | waitlist_closing
-        // (solo cuando el enlace existe; si aún no hay URL se muestra un aviso y no se mide)
-        track("cta_click", { cta_id: cta.dataset.cta });
+        if (cta.dataset.pending === "true") {
+          event.preventDefault();
+          showToast("Ahora mismo estamos abriendo nuevas plazas. ¡Vuelve en unos días!");
+        }
       });
 
       /* ----------------------------- Compartir ----------------------------- */
-      const shareSubject = "¿Usarías Sobra? Son 3 minutos";
-      const shareMsg = "Te paso Sobra: lo que sobra cada día en la cafetería de la uni, a mitad de precio. Responde en 3 minutos (es anónimo) y decide si existe: ";
+      const shareSubject = "Sobra ya está en la uni";
+      const shareMsg = "Te paso Sobra: lo que sobra cada día en la cafetería de la uni, a mitad de precio. Ya está disponible y los primeros de la lista tienen acceso prioritario: ";
       const shareLinks = {
         whatsapp: "https://wa.me/?text=" + enc(shareMsg + SITE_URL),
         outlook: "https://outlook.office.com/mail/deeplink/compose?subject=" + enc(shareSubject) + "&body=" + enc(shareMsg + SITE_URL),
@@ -1693,30 +1739,41 @@
 
 
       /* ----------------------------- El problema: escena animada ----------------------------- */
-      // Arranca cuando la sección entra en pantalla y se repite en bucle.
+      // Se reproduce UNA vez, solo cuando la persona está de verdad en la sección (no al pasar
+      // por encima con el scroll automático del CTA), y se queda en el estado final para leerlo.
       const flow = $("[data-flow]");
       let flowStarted = false;
-      // Se reproduce UNA vez al llegar y se queda en el estado final para poder leerlo.
       let flowTimers = [];
+      // Tiempos (ms): cada texto se queda ~4,5 s antes de pasar al siguiente
+      //   s1  platos en el mostrador · s1b caen a la basura → texto "La cafetería"
+      //   s2  nevera vacía → texto "Tú" · s3  20:59 → texto "Sobra" · done  fin + "Ver otra vez"
+      const FLOW_STEPS = [["s1", 300], ["s1b", 2000], ["s2", 6600], ["s3", 11200], ["done", 15000]];
       function runFlow() {
-        const phases = ["s1", "s1b", "s2", "s3", "done"];
+        const phases = FLOW_STEPS.map(([cls]) => cls);
         flowTimers.forEach(clearTimeout);
         flow.classList.add("is-reset");
         flow.classList.remove(...phases);
         void flow.offsetWidth; // aplica el reinicio sin transiciones
         flow.classList.remove("is-reset");
-        flowTimers = [["s1", 250], ["s1b", 1900], ["s2", 3600], ["s3", 5500], ["done", 8200]]
-          .map(([cls, t]) => setTimeout(() => flow.classList.add(cls), t));
+        flowTimers = FLOW_STEPS.map(([cls, t]) => setTimeout(() => flow.classList.add(cls), t));
       }
       const replayBtn = $("[data-flow-replay]");
       if (replayBtn) replayBtn.addEventListener("click", () => runFlow());
+
+      // La escena tiene que estar en el centro de la pantalla, sin scroll automático en marcha,
+      // durante al menos 400 ms seguidos (así no arranca al pasar de largo).
+      let flowSeenSince = null;
       function maybeStartFlow() {
         if (!flow || flowStarted) return;
         const r = flow.getBoundingClientRect();
-        if (r.top < window.innerHeight * 0.8 && r.bottom > 0) { flowStarted = true; runFlow(); }
+        const vh = window.innerHeight;
+        const centered = r.top < vh * 0.6 && r.bottom > vh * 0.4;
+        if (!centered || autoScrolling) { flowSeenSince = null; return; }
+        if (flowSeenSince === null) { flowSeenSince = performance.now(); return; }
+        if (performance.now() - flowSeenSince >= 400) { flowStarted = true; runFlow(); }
       }
-      // Además del scroll, se comprueba cada medio segundo (por si se llega a la sección sin hacer scroll)
-      const flowWatch = setInterval(() => { maybeStartFlow(); if (flowStarted) clearInterval(flowWatch); }, 500);
+      // Además del scroll, se comprueba cada 250 ms (detecta cuándo la persona se ha parado)
+      const flowWatch = setInterval(() => { maybeStartFlow(); if (flowStarted) clearInterval(flowWatch); }, 250);
 
       /* ----------------------------- Ajuste a pantalla ----------------------------- */
       // Cada sección [data-fit] debe caber en una pantalla. El CSS ya dimensiona todo según
@@ -1830,9 +1887,43 @@
           i = clamp(i, 0, cards.length - 1);
           howTrack.scrollTo({ left: Math.min(cardTarget(i), maxScroll()), behavior: "smooth" });
         };
+        /* [ANALÍTICA] proto_screen_time { screen: "01".."06", seconds }
+           Mide cuánto tiempo se ve cada pantalla mientras la sección está a la vista.
+           - Empieza a contar al entrar en la sección (o al volver a la pestaña).
+           - Al cambiar de pantalla (flechas, arrastre, deslizamiento o tarjeta lateral) envía el tiempo de la anterior.
+           - Al salir de la sección (Intersection Observer) o al ocultar la pestaña, envía el de la última vista.
+           - No envía nada si fueron menos de 1 segundo (p. ej., pantallas por las que solo se pasa de largo). */
+        let screenStart = null;      // momento en que empezó a verse la pantalla actual (null = no se está midiendo)
+        let howVisible = false;
+        const flushScreenTime = () => {
+          if (screenStart === null) return;
+          const ms = performance.now() - screenStart;
+          screenStart = null;
+          if (ms >= 1000) track("proto_screen_time", { screen: pad(active + 1), seconds: Math.round(ms / 1000) });
+        };
+        const startScreenTime = () => {
+          if (howVisible && !document.hidden) screenStart = performance.now();
+        };
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              const nowVisible = entry.isIntersecting && entry.intersectionRatio >= 0.5;
+              if (nowVisible === howVisible) return;
+              howVisible = nowVisible;
+              if (howVisible) startScreenTime(); else flushScreenTime();
+            });
+          }, { threshold: [0, 0.5, 1] }).observe(how);
+        }
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) flushScreenTime(); else startScreenTime();
+        });
+        window.addEventListener("pagehide", flushScreenTime);
+
         const setActive = (i) => {
           if (i === active) return;
+          flushScreenTime();        // tiempo de la pantalla que se deja
           active = i;
+          startScreenTime();        // empieza la nueva
           cards.forEach((c, j) => c.classList.toggle("is-active", j === i));
           countEl.textContent = pad(i + 1);
         };
@@ -1995,6 +2086,7 @@
         renderDigits(cdTime, text);
         stickyTime.textContent = text;
 
+        // Servicio en marcha: cuenta atrás hasta lo de hoy (o lo de mañana si ya ha salido)
         if (releasedToday) {
           cdLabel.textContent = "Lo de hoy ya ha salido. Lo de mañana, en";
           stickyLabel.textContent = "mañana en";
