@@ -531,8 +531,11 @@
     ];
 
     // Una chuche por persona: la reserva se guarda en este móvil (localStorage).
+    // Pasados BLOQUEO_MINUTOS desde la reserva, si vuelve a abrir el enlace empieza de cero
+    // (no se muestra ningún aviso: en la demo de clase nadie llega a repetir).
     // Para ensayar en tu propio móvil, abre la app con ?reset al final de la URL y se borra.
     const STORAGE_KEY = "sobra_demo_reserva";
+    const BLOQUEO_MINUTOS = 15;
 
     /* =====================================================================
        APP
@@ -585,7 +588,13 @@
             return null;
           }
           const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-          return saved && saved.name && ITEMS.some((i) => i.id === saved.itemId) ? saved : null;
+          if (!saved || !saved.name || !ITEMS.some((i) => i.id === saved.itemId)) return null;
+          // Pasado el tiempo de bloqueo (o reserva antigua sin hora), se borra y puede reservar de nuevo
+          if (!saved.at || Date.now() - saved.at >= BLOQUEO_MINUTOS * 60000) {
+            localStorage.removeItem(STORAGE_KEY);
+            return null;
+          }
+          return saved;
         } catch (e) { return null; }
       }
       function save(extra) {
@@ -726,7 +735,8 @@
 
         state.code = "B-" + (100 + Math.floor(Math.random() * 900));
         fillReservation();
-        save({ name: state.name, itemId: state.item.id, code: state.code });
+        state.at = Date.now();
+        save({ name: state.name, itemId: state.item.id, code: state.code, at: state.at });
 
         setTimeout(() => {
           reserveBtn.classList.add("is-done");
@@ -867,6 +877,7 @@
         state.name = saved.name;
         state.item = ITEMS.find((i) => i.id === saved.itemId);
         state.code = saved.code || "B-" + (100 + Math.floor(Math.random() * 900));
+        state.at = saved.at;
         fillReservation();
         if (saved.rating) {
           state.rating = saved.rating;
